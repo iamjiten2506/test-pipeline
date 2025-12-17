@@ -1,0 +1,24 @@
+version: 0.2
+
+env:
+  variables:
+    CICD_S3_BUCKET: 'test-cicd-bucket'
+    PROJECT_NAME_DIR: 'test-project'
+    REGION_SHORT_NAME: 'use1'
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+  build:
+    commands:
+      - echo "Building SAM template..."
+      - sam build -t templates/state-machines.yaml
+      - sam package --s3-bucket $CICD_S3_BUCKET-$REGION_SHORT_NAME --s3-prefix test/sam_package --output-template-file templates/packaged-state-machines.yaml
+      - ls -la templates/
+      - echo "Build completed successfully"
+
+artifacts:
+  files:
+    - "config/**/*"
+    - "templates/**/*"
