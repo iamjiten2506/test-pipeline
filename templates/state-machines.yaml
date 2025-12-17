@@ -1,17 +1,65 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  Environment:
+    Type: String
+  AssetInsightId:
+    Type: String
+  RegionShortName:
+    Type: String
+  Region:
+    Type: String
+  EnvironmentType:
+    Type: String
+  ResourceOwner:
+    Type: String
+  FinancialIdentifier:
+    Type: String
+  MasterProductAssetInsightId:
+    Type: String
+  ServiceName:
+    Type: String
+  ProjectName:
+    Type: String
+  CodeObjectKey:
+    Type: String
+  S3BucketTemp:
+    Type: String
+  S3BucketCicdName:
+    Type: String
+  S3BucketFinal:
+    Type: String
+  ProjectNameWithDashes:
+    Type: String
+  ProjectNameCamel:
+    Type: String
+  ActivityResultMessageSender:
+    Type: String
+  BuildVersion:
+    Type: String
+  PrivateSubnet1:
+    Type: String
+  PrivateSubnet2:
+    Type: String
+  GoldenAmi:
+    Type: String
+  Product:
+    Type: String
+  StackId:
+    Type: String
+
 Resources:
-  TestStateMachine:
+  ResolvedKeyciteStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
-      StateMachineName: TestStateMachine
+      StateMachineName: !Sub "${Environment}-${ProjectName}-workflow-${RegionShortName}"
       DefinitionString: |
         {
-          "Comment": "Test state machine",
-          "StartAt": "Pass",
+          "Comment": "Resolved Keycite Workflow",
+          "StartAt": "ProcessKeycite",
           "States": {
-            "Pass": {
+            "ProcessKeycite": {
               "Type": "Pass",
               "End": true
             }
@@ -29,3 +77,5 @@ Resources:
             Principal:
               Service: states.amazonaws.com
             Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSStepFunctionsFullAccess
