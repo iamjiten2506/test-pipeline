@@ -1,8 +1,33 @@
 template_path: templates/packaged-state-machines.yaml
 
 parameters:
-  Environment: dev
-  Region: us-east-1
+  Environment: {{ var.DevEnvShortName }}
+  AssetInsightId: "{{ var.AssetInsightId }}"
+  RegionShortName: {{ var.RegionShortName }}
+  Region: {{ var.Region }}
+  EnvironmentType: {{ var.DevEnvFullName }}
+  ResourceOwner: {{ var.ResourceOwner }}
+  FinancialIdentifier: "{{ var.FinancialIdentifier }}"
+  MasterProductAssetInsightId: {{ var.MasterProductAssetInsightId }}
+  ServiceName: {{ var.ServiceName }}
+  ProjectName: {{ var.ProjectName }}
+  CodeObjectKey: {{ var.AppJarObjectKey }}
+  S3BucketTemp: {{ var.S3BucketTemp }}
+  S3BucketCicdName: {{ var.S3BucketCicdName }}
+  S3BucketFinal: "{{ var.S3BucketFinal }}"
+  ProjectNameWithDashes: {{ var.ProjectNameWithDashes }}
+  ProjectNameCamel: {{ var.ProjectNameCamel }}
+  ActivityResultMessageSender: {{ var.QaActivityResultMessageSender }}
+  BuildVersion: {{ var.BuildVersion }}
+  PrivateSubnet1: {{ var.QaPrivateSubnet1 }}
+  PrivateSubnet2: {{ var.QaPrivateSubnet2 }}
+  GoldenAmi: {{ var.QaGoldenAmi }}
+  Product: {{ var.Product }}
+  StackId: ""
 
 stack_tags:
-  "test": "reproduction"
+  "tr:financial-identifier": "{{ var.FinancialIdentifier }}"
+  "tr:application-asset-insight-id": "{{ var.AssetInsightId }}"
+  "tr:environment-type": {{ var.DevEnvFullName }}
+  "tr:resource-owner": {{ var.ResourceOwner }}
+  "tr:project-name": {{ var.ProjectNameWithDashes }}
