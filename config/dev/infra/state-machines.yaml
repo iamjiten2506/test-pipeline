@@ -1,0 +1,8 @@
+template_path: templates/packaged-state-machines.yaml
+
+parameters:
+  Environment: dev
+  Region: us-east-1
+
+stack_tags:
+  "test": "reproduction"
