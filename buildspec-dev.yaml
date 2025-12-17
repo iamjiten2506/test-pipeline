@@ -26,6 +26,7 @@ phases:
       - python3 -m pip install --upgrade pip
   build:
     commands:
+      - codebuild-breakpoint
       - export REGION_SHORT_NAME=use1
       - export REGION=us-east-1
       - BUILD_VER=dev$(shuf -i 1000000-9999999 -n 1)
