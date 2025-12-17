@@ -2,23 +2,47 @@ version: 0.2
 
 env:
   variables:
-    CICD_S3_BUCKET: 'test-cicd-bucket'
-    PROJECT_NAME_DIR: 'test-project'
-    REGION_SHORT_NAME: 'use1'
+    MAVEN_OPTS: "--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+    ARTIFACT_ID: 'resolved-keycite'
+    PROJECT_NAME_DIR: 'resolved-keycite'
+    S3_BUCKET_DEV: 'test-bigdatasharedresources-iac-artifact'
+    CICD_S3_BUCKET: 'test-tactstoragesharedres-iac-artifact'
+    STATE_MACHINE_TO_RUN: 'test-legalpublish-resolvedkeycite-workflow-dev-use1'
+    STATE_MACHINE_INPUT: '{"workflowExecutionActivityGuid": "keycite-resolver-d5a1e173-498e-4ea2-a552-f5861bf0c7b7", "correlationId": "keycite-resolver-d5a1e173-498e-4ea2-a552-f5861bf0c7b7"}'
+    CICD_PIPELINE_TYPE: 'dev'
+  exported-variables:
+    - STATE_MACHINE_TO_RUN
+    - STATE_MACHINE_INPUT
+    - REGION_SHORT_NAME
+    - REGION
+    - OUTPUT_JAR
 
 phases:
   install:
     runtime-versions:
       python: 3.8
+    commands:
+      - cp ./settings.xml /root/.m2/settings.xml
+      - python3 -m pip install --upgrade pip
   build:
     commands:
-      - echo "Building SAM template..."
+      - BUILD_VER=dev$(shuf -i 1000000-9999999 -n 1)
+      - mvn package -Drevision="$BUILD_VER"
       - sam build -t templates/state-machines.yaml
-      - sam package --s3-bucket $CICD_S3_BUCKET-$REGION_SHORT_NAME --s3-prefix test/sam_package --output-template-file templates/packaged-state-machines.yaml
-      - ls -la templates/
-      - echo "Build completed successfully"
+      - sam package --s3-bucket $CICD_S3_BUCKET-$REGION_SHORT_NAME --s3-prefix project/$PROJECT_NAME_DIR/cicd/sam_package --output-template-file templates/packaged-state-machines.yaml
+      - sam build -t testing/templates/serverless-template.yaml --debug
+      - sam package --s3-bucket $CICD_S3_BUCKET-$REGION_SHORT_NAME --s3-prefix project/$PROJECT_NAME_DIR/cicd/sam_package --output-template-file templates/packaged-sam-testing-template.yaml
+  post_build:
+    commands:
+      - OUTPUT_JAR=s3://$CICD_S3_BUCKET-$REGION_SHORT_NAME/project/$PROJECT_NAME_DIR/cicd/$CICD_PIPELINE_TYPE/$ARTIFACT_ID-$BUILD_VER.jar
+      - aws s3 cp target/$ARTIFACT_ID-$BUILD_VER.jar s3://$CICD_S3_BUCKET-$REGION_SHORT_NAME/project/$PROJECT_NAME_DIR/cicd/$CICD_PIPELINE_TYPE/$ARTIFACT_ID-$BUILD_VER.jar --acl bucket-owner-full-control
 
 artifacts:
   files:
     - "config/**/*"
     - "templates/**/*"
+    - "variables.yaml"
+
+cache:
+  paths:
+    - '/root/.m2/**/*'
